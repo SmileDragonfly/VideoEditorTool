@@ -33,6 +33,8 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
+	CString m_strInputPath;
+	CString m_strOutputPath;
 	afx_msg void OnBnClickedInputVideo();
 	afx_msg void OnBnClickedOutputVideo();
 	afx_msg void OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult);

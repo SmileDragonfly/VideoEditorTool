@@ -182,6 +182,7 @@ void CVideoEditorToolDlg::OnBnClickedInputVideo()
 	{
 		CEdit* pEditInputPath = (CEdit*) GetDlgItem(IDC_INPUT_PATH);
 		pEditInputPath->SetWindowText(dlgInput.GetPathName());
+		m_strInputPath = dlgInput.GetPathName();
 		return;
 	}
 }
@@ -198,8 +199,9 @@ void CVideoEditorToolDlg::OnBnClickedOutputVideo()
 	}
 	else
 	{
-		CEdit* pEditInputPath = (CEdit*)GetDlgItem(IDC_OUTPUT_PATH);
-		pEditInputPath->SetWindowText(dlgOutput.GetPathName());
+		CEdit* pEditOutputPath = (CEdit*)GetDlgItem(IDC_OUTPUT_PATH);
+		pEditOutputPath->SetWindowText(dlgOutput.GetPathName());
+		m_strOutputPath = dlgOutput.GetPathName();
 	}
 }
 
@@ -247,4 +249,5 @@ void CVideoEditorToolDlg::OnBnClickedOk()
 {
 	// TODO: Add your control notification handler code here
 	// CDialogEx::OnOK();
+	// 1 step: Check input and output path is exist
 }
