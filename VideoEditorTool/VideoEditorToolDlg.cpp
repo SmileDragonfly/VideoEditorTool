@@ -326,6 +326,7 @@ void CVideoEditorToolDlg::OnBnClickedOk()
 	CT2A cInputPath(m_strInputPath);
 	CT2A cOutputPath(m_strOutputPath);
 	inputVideo.open(cInputPath.m_szBuffer);
+	unsigned int totalFrame = inputVideo.get(CAP_PROP_FRAME_COUNT);
 
 	// Step 3: Get output FPS,Size (equal InputSize) and FOURCC (input) to open
 	unsigned int iOutputVideoFPS = (unsigned int) (m_fSpeed * inputVideo.get(CAP_PROP_FPS));
@@ -333,9 +334,21 @@ void CVideoEditorToolDlg::OnBnClickedOk()
 	int iFourcc = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));
 	VideoWriter outputVideo(cOutputPath.m_szBuffer, iFourcc, iOutputVideoFPS, outputSize);
 
-	// Step 4: Get a frame from input, change it's color then put it to output
+	// Step 4: Disable main window, show progress bar
+	CWnd* pMainWnd = AfxGetMainWnd();
+	pMainWnd->EnableWindow(FALSE);
+	CProgressBar progressBar;
+	progressBar.Create(IDD_PROGRESS_BAR);
+
+	progressBar.ShowWindow(SW_SHOW);
+	progressBar.CenterWindow(AfxGetMainWnd());
+	progressBar.SetActiveWindow();
+	progressBar.EnableWindow(FALSE);
+
+	// Step 5: Get a frame from input, change it's color then put it to output
 	
 	unsigned int count = 0;
+	float fProgress = 0;
 	while(1)
 	{
 		Mat frame;
@@ -349,9 +362,17 @@ void CVideoEditorToolDlg::OnBnClickedOk()
 		// Write frame to output
 		outputVideo << frame;
 		count++;
+		if ((count % 10) == 0)
+		{
+			fProgress = static_cast<float>(count) / totalFrame * 100;
+			::SendMessage(progressBar.GetSafeHwnd(), UPDATE_PROGRESS_BAR, (WPARAM)static_cast<int>(fProgress), (LPARAM)0);
+		}
 	}
+	::SendMessage(progressBar.GetSafeHwnd(), UPDATE_PROGRESS_BAR, 100, (LPARAM)0);
+	::SendMessage(progressBar.GetSafeHwnd(), CLOSE_PROGRESS_BAR, (WPARAM)0, (LPARAM)0);
 	inputVideo.release();
 	outputVideo.release();
+	pMainWnd->EnableWindow(TRUE);
 }
 
 

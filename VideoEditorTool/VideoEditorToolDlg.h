@@ -5,6 +5,7 @@
 #pragma once
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include "CProgressBar.h"
 #define MIN_SPEED 1			// 0.5x
 #define MAX_SPEED 10		// 5x
 enum ColorSelection
