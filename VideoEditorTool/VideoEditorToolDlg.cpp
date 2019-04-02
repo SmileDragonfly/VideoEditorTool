@@ -6,6 +6,8 @@
 #include "VideoEditorTool.h"
 #include "VideoEditorToolDlg.h"
 #include "afxdialogex.h"
+using namespace std;
+using namespace cv;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -250,4 +252,5 @@ void CVideoEditorToolDlg::OnBnClickedOk()
 	// TODO: Add your control notification handler code here
 	// CDialogEx::OnOK();
 	// 1 step: Check input and output path is exist
+	int a = COLOR_BGR2BGRA;
 }
