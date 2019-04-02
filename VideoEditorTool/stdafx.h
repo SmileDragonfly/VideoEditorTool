@@ -32,9 +32,6 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <afxcontrolbars.h>     // MFC support for ribbons and control bars
-#include <opencv2/opencv.hpp>
-#include <iostream>
-
 
 
 

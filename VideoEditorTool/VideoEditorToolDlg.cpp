@@ -6,6 +6,7 @@
 #include "VideoEditorTool.h"
 #include "VideoEditorToolDlg.h"
 #include "afxdialogex.h"
+
 using namespace std;
 using namespace cv;
 
@@ -55,6 +56,8 @@ CVideoEditorToolDlg::CVideoEditorToolDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_VIDEOEDITORTOOL_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_fSpeed = 1;
+	m_iColor = RED;
 }
 
 void CVideoEditorToolDlg::DoDataExchange(CDataExchange* pDX)
@@ -70,6 +73,11 @@ BEGIN_MESSAGE_MAP(CVideoEditorToolDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_OUTPUT_VIDEO, &CVideoEditorToolDlg::OnBnClickedOutputVideo)
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPEED_SPIN, &CVideoEditorToolDlg::OnDeltaposSpeedSpin)
 	ON_BN_CLICKED(IDOK, &CVideoEditorToolDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_COLOR_RED, &CVideoEditorToolDlg::OnBnClickedColorRed)
+	ON_BN_CLICKED(IDC_COLOR_GREEN, &CVideoEditorToolDlg::OnBnClickedColorGreen)
+	ON_BN_CLICKED(IDC_COLOR_BLUE, &CVideoEditorToolDlg::OnBnClickedColorBlue)
+	ON_BN_CLICKED(IDC_COLOR_GRAY, &CVideoEditorToolDlg::OnBnClickedColorGray)
+	ON_BN_CLICKED(IDC_COLOR_RAW, &CVideoEditorToolDlg::OnBnClickedColorRaw)
 END_MESSAGE_MAP()
 
 
@@ -78,7 +86,9 @@ END_MESSAGE_MAP()
 BOOL CVideoEditorToolDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
-
+	// Add title
+	CWnd * pWnd = AfxGetMainWnd();
+	pWnd->SetWindowTextW(L"VideoEditorTool");
 	// Add "About..." menu item to system menu.
 
 	// IDM_ABOUTBOX must be in the system command range.
@@ -116,6 +126,9 @@ BOOL CVideoEditorToolDlg::OnInitDialog()
 	// Display default speed on edit speed box
 	CEdit* pSpeedView = (CEdit*)GetDlgItem(IDC_SPEED_VIEW);
 	pSpeedView->SetWindowText(L"1x");
+	// Choose default color
+	CButton* pRadioRed = (CButton*)GetDlgItem(IDC_COLOR_RED);
+	pRadioRed->SetCheck(TRUE);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -170,6 +183,46 @@ HCURSOR CVideoEditorToolDlg::OnQueryDragIcon()
 }
 
 
+
+void ChangeFrameColor(Mat* frame, ColorSelection color)
+{
+	switch (color)
+	{
+		case RED:
+		case GREEN:
+		case BLUE:
+		{
+			unsigned int channel = 2 - color;
+			vector<Mat> frameChannel;
+			Size inputSize(frame->cols, frame->rows);
+			split(*frame, frameChannel);
+			for (int i = 0; i < 3; ++i)
+			{
+				if (i != channel)
+				{
+					frameChannel[i] = Mat::zeros(inputSize, frameChannel[0].type());
+				}
+			}
+			merge(frameChannel, *frame);
+			break;
+		}
+		case GRAY:
+		{
+			Mat tempFrame;
+			cvtColor(*frame, tempFrame, COLOR_BGR2GRAY);
+			*frame = tempFrame;
+			break;
+		}
+		case RAW:
+		{
+			break;
+		}
+		default:
+		{
+			AfxMessageBox(L"This color conversion type is not supported!");
+		}
+	}
+}
 
 void CVideoEditorToolDlg::OnBnClickedInputVideo()
 {
@@ -244,6 +297,8 @@ void CVideoEditorToolDlg::OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult)
 	CString sSpeedView;
 	sSpeedView.Format(L"%.1fx", fRealSpeed);
 	pSpeedView->SetWindowText(sSpeedView);
+	m_fSpeed = fRealSpeed;
+	return;
 }
 
 
@@ -251,6 +306,85 @@ void CVideoEditorToolDlg::OnBnClickedOk()
 {
 	// TODO: Add your control notification handler code here
 	// CDialogEx::OnOK();
-	// 1 step: Check input and output path is exist
-	int a = COLOR_BGR2BGRA;
+	// Step 1: Check input and output path is exist
+	BOOL bIsInputFileExist = PathFileExists(m_strInputPath);
+	if (!bIsInputFileExist)
+	{
+		AfxMessageBox(L"Input file is not exist!");
+		return;
+	}
+	CString strOutputDir = m_strOutputPath.Left(m_strOutputPath.ReverseFind('\\'));
+	BOOL bIsOutputDirExist = PathIsDirectory(strOutputDir);
+	if (!bIsOutputDirExist)
+	{
+		AfxMessageBox(L"Output folder is not exist!");
+		return;
+	}
+
+	// Step 2: Open Input
+	VideoCapture inputVideo;
+	CT2A cInputPath(m_strInputPath);
+	CT2A cOutputPath(m_strOutputPath);
+	inputVideo.open(cInputPath.m_szBuffer);
+
+	// Step 3: Get output FPS,Size (equal InputSize) and FOURCC (input) to open
+	unsigned int iOutputVideoFPS = (unsigned int) (m_fSpeed * inputVideo.get(CAP_PROP_FPS));
+	Size outputSize((int)inputVideo.get(CAP_PROP_FRAME_WIDTH), (int)inputVideo.get(CAP_PROP_FRAME_HEIGHT));
+	int iFourcc = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));
+	VideoWriter outputVideo(cOutputPath.m_szBuffer, iFourcc, iOutputVideoFPS, outputSize);
+
+	// Step 4: Get a frame from input, change it's color then put it to output
+	
+	unsigned int count = 0;
+	while(1)
+	{
+		Mat frame;
+		inputVideo >> frame;
+		if (frame.empty())
+		{
+			break;
+		}
+		// Change frame color
+		ChangeFrameColor(&frame, m_iColor);
+		// Write frame to output
+		outputVideo << frame;
+		count++;
+	}
+	inputVideo.release();
+	outputVideo.release();
+}
+
+
+void CVideoEditorToolDlg::OnBnClickedColorRed()
+{
+	// TODO: Add your control notification handler code here
+	m_iColor = RED;
+}
+
+
+void CVideoEditorToolDlg::OnBnClickedColorGreen()
+{
+	// TODO: Add your control notification handler code here
+	m_iColor = GREEN;
+}
+
+
+void CVideoEditorToolDlg::OnBnClickedColorBlue()
+{
+	// TODO: Add your control notification handler code here
+	m_iColor = BLUE;
+}
+
+
+void CVideoEditorToolDlg::OnBnClickedColorGray()
+{
+	// TODO: Add your control notification handler code here
+	m_iColor = GRAY;
+}
+
+
+void CVideoEditorToolDlg::OnBnClickedColorRaw()
+{
+	// TODO: Add your control notification handler code here
+	m_iColor = RAW;
 }
