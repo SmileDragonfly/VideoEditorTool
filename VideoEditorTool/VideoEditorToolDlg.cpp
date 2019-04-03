@@ -187,7 +187,7 @@ HCURSOR CVideoEditorToolDlg::OnQueryDragIcon()
 
 
 
-void ChangeFrameColor(Mat* frame, ColorSelection color)
+void CVideoEditorToolDlg::ChangeFrameColor(Mat* frame, ColorSelection color)
 {
 	switch (color)
 	{
@@ -263,7 +263,7 @@ UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
 			break;
 		}
 		// Change frame color
-		ChangeFrameColor(&frame, pTarget->m_iColor);
+		pTarget->ChangeFrameColor(&frame, pTarget->m_iColor);
 		// Write frame to output
 		outputVideo << frame;
 		count++;

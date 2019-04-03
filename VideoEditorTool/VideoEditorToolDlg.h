@@ -50,6 +50,7 @@ public:
 	float m_fSpeed;
 	CWinThread* m_processThread;
 	static UINT ProcessingThread(LPVOID param);
+	void ChangeFrameColor(cv::Mat* frame, ColorSelection color);
 	afx_msg void OnBnClickedInputVideo();
 	afx_msg void OnBnClickedOutputVideo();
 	afx_msg void OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult);
