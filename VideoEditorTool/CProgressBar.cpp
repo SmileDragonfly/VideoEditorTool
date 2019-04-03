@@ -31,6 +31,7 @@ void CProgressBar::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CProgressBar, CDialogEx)
 	ON_MESSAGE(UPDATE_PROGRESS_BAR, &CProgressBar::OnUpdateProgressBar)
 	ON_MESSAGE(CLOSE_PROGRESS_BAR, &CProgressBar::OnCloseProgressBar)
+	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 
@@ -62,4 +63,12 @@ afx_msg LRESULT CProgressBar::OnCloseProgressBar(WPARAM wParam, LPARAM lParam)
 	if (this)
 		this->DestroyWindow();  // destroy it
 	return 0;
+}
+
+
+void CProgressBar::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	// TODO: Add your message handler code here and/or call default
+
+	CDialogEx::OnSysCommand(nID, lParam);
 }

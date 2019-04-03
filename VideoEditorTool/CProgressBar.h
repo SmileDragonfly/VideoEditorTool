@@ -29,4 +29,6 @@ protected:
 	afx_msg LRESULT OnUpdateProgressBar(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnCloseProgressBar(WPARAM wParam, LPARAM lParam);
 	HICON m_hIcon;
+public:
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 };
