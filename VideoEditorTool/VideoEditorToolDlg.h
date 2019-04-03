@@ -48,6 +48,7 @@ public:
 	CString m_strOutputPath;
 	ColorSelection m_iColor;
 	float m_fSpeed;
+	static UINT ProcessingThread(LPVOID param);
 	afx_msg void OnBnClickedInputVideo();
 	afx_msg void OnBnClickedOutputVideo();
 	afx_msg void OnDeltaposSpeedSpin(NMHDR *pNMHDR, LRESULT *pResult);

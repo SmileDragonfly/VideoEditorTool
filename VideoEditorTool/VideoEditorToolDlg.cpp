@@ -224,6 +224,59 @@ void ChangeFrameColor(Mat* frame, ColorSelection color)
 	}
 }
 
+UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
+{
+	// Step 1: Open Input
+	CVideoEditorToolDlg* pTarget = static_cast<CVideoEditorToolDlg*>(param);
+	VideoCapture inputVideo;
+	CT2A cInputPath(pTarget->m_strInputPath);
+	CT2A cOutputPath(pTarget->m_strOutputPath);
+	inputVideo.open(cInputPath.m_szBuffer);
+	unsigned int totalFrame = inputVideo.get(CAP_PROP_FRAME_COUNT);
+
+	// Step 2: Get output FPS,Size (equal InputSize) and FOURCC (input) to open
+	unsigned int iOutputVideoFPS = (unsigned int)(pTarget->m_fSpeed * inputVideo.get(CAP_PROP_FPS));
+	Size outputSize((int)inputVideo.get(CAP_PROP_FRAME_WIDTH), (int)inputVideo.get(CAP_PROP_FRAME_HEIGHT));
+	int iFourcc = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));
+	VideoWriter outputVideo(cOutputPath.m_szBuffer, iFourcc, iOutputVideoFPS, outputSize);
+
+	// Step 3: Init progress bar, text
+	CProgressCtrl* pProgressBar = (CProgressCtrl*)pTarget->GetDlgItem(IDC_PROGRESS_BAR);
+	CStatic* pStaticText = (CStatic*)pTarget->GetDlgItem(IDC_FRAME_TOTAL);
+	pProgressBar->SetRange(0, totalFrame);
+	pProgressBar->SetPos(0);
+	CString frameTotal;
+	frameTotal.Format(L"0/%d", totalFrame);
+	pStaticText->SetWindowText(frameTotal);
+	// Step 5: Get a frame from input, change it's color then put it to output
+
+	unsigned int count = 0;
+	while (1)
+	{
+		Mat frame;
+		inputVideo >> frame;
+		if (frame.empty())
+		{
+			break;
+		}
+		// Change frame color
+		ChangeFrameColor(&frame, pTarget->m_iColor);
+		// Write frame to output
+		outputVideo << frame;
+		count++;
+		if ((count % 10) == 0)
+		{
+			pProgressBar->SetPos(count);
+		}
+		frameTotal.Format(L"%d/%d (%0.2f", count, totalFrame, (float)count / totalFrame * 100);
+		frameTotal += L"%)";
+		pStaticText->SetWindowText(frameTotal);
+	}
+	inputVideo.release();
+	outputVideo.release();
+	return 0;
+}
+
 void CVideoEditorToolDlg::OnBnClickedInputVideo()
 {
 	// TODO: Add your control notification handler code here
@@ -321,53 +374,60 @@ void CVideoEditorToolDlg::OnBnClickedOk()
 		return;
 	}
 
-	// Step 2: Open Input
-	VideoCapture inputVideo;
-	CT2A cInputPath(m_strInputPath);
-	CT2A cOutputPath(m_strOutputPath);
-	inputVideo.open(cInputPath.m_szBuffer);
-	unsigned int totalFrame = inputVideo.get(CAP_PROP_FRAME_COUNT);
+	//// Step 2: Open Input
+	//VideoCapture inputVideo;
+	//CT2A cInputPath(m_strInputPath);
+	//CT2A cOutputPath(m_strOutputPath);
+	//inputVideo.open(cInputPath.m_szBuffer);
+	//unsigned int totalFrame = inputVideo.get(CAP_PROP_FRAME_COUNT);
 
-	// Step 3: Get output FPS,Size (equal InputSize) and FOURCC (input) to open
-	unsigned int iOutputVideoFPS = (unsigned int) (m_fSpeed * inputVideo.get(CAP_PROP_FPS));
-	Size outputSize((int)inputVideo.get(CAP_PROP_FRAME_WIDTH), (int)inputVideo.get(CAP_PROP_FRAME_HEIGHT));
-	int iFourcc = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));
-	VideoWriter outputVideo(cOutputPath.m_szBuffer, iFourcc, iOutputVideoFPS, outputSize);
+	//// Step 3: Get output FPS,Size (equal InputSize) and FOURCC (input) to open
+	//unsigned int iOutputVideoFPS = (unsigned int) (m_fSpeed * inputVideo.get(CAP_PROP_FPS));
+	//Size outputSize((int)inputVideo.get(CAP_PROP_FRAME_WIDTH), (int)inputVideo.get(CAP_PROP_FRAME_HEIGHT));
+	//int iFourcc = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));
+	//VideoWriter outputVideo(cOutputPath.m_szBuffer, iFourcc, iOutputVideoFPS, outputSize);
 
-	// Step 4: Init progress bar, text
-	CProgressCtrl* pProgressBar = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS_BAR);
-	CStatic* pStaticText = (CStatic*)GetDlgItem(IDC_FRAME_TOTAL);
-	pProgressBar->SetRange(0, totalFrame);
-	pProgressBar->SetPos(0);
-	CString frameTotal;
-	frameTotal.Format(L"0/%d", totalFrame);
-	pStaticText->SetWindowText(frameTotal);
-	// Step 5: Get a frame from input, change it's color then put it to output
-	
-	unsigned int count = 0;
-	while(1)
+	//// Step 4: Init progress bar, text
+	//CProgressCtrl* pProgressBar = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS_BAR);
+	//CStatic* pStaticText = (CStatic*)GetDlgItem(IDC_FRAME_TOTAL);
+	//pProgressBar->SetRange(0, totalFrame);
+	//pProgressBar->SetPos(0);
+	//CString frameTotal;
+	//frameTotal.Format(L"0/%d", totalFrame);
+	//pStaticText->SetWindowText(frameTotal);
+	//// Step 5: Get a frame from input, change it's color then put it to output
+	//
+	//unsigned int count = 0;
+	//while(1)
+	//{
+	//	Mat frame;
+	//	inputVideo >> frame;
+	//	if (frame.empty())
+	//	{
+	//		break;
+	//	}
+	//	// Change frame color
+	//	ChangeFrameColor(&frame, m_iColor);
+	//	// Write frame to output
+	//	outputVideo << frame;
+	//	count++;
+	//	if ((count % 10) == 0)
+	//	{
+	//		pProgressBar->SetPos(count);
+	//	}
+	//	frameTotal.Format(L"%d/%d (%0.2f", count, totalFrame, (float)count/totalFrame * 100);
+	//	frameTotal += L"%)";
+	//	pStaticText->SetWindowText(frameTotal);
+	//}
+	//AfxMessageBox(L"Done!");
+	//inputVideo.release();
+	//outputVideo.release();
+
+	CWinThread* processThread = AfxBeginThread(ProcessingThread, (LPVOID)this, 0, THREAD_PRIORITY_BELOW_NORMAL, CREATE_SUSPENDED);
+	if (processThread)
 	{
-		Mat frame;
-		inputVideo >> frame;
-		if (frame.empty())
-		{
-			break;
-		}
-		// Change frame color
-		ChangeFrameColor(&frame, m_iColor);
-		// Write frame to output
-		outputVideo << frame;
-		count++;
-		if ((count % 10) == 0)
-		{
-			pProgressBar->SetPos(count);
-		}
-		frameTotal.Format(L"%d/%d (%0.2f", count, totalFrame, (float)count/totalFrame * 100);
-		frameTotal += L"%)";
-		pStaticText->SetWindowText(frameTotal);
+		processThread->ResumeThread();
 	}
-	inputVideo.release();
-	outputVideo.release();
 }
 
 
