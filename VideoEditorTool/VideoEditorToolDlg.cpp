@@ -10,6 +10,8 @@
 using namespace std;
 using namespace cv;
 
+static unsigned int g_count = 0;
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -212,8 +214,15 @@ void CVideoEditorToolDlg::ChangeFrameColor(Mat* frame, ColorSelection color)
 		case GRAY:
 		{
 			Mat tempFrame;
+			CString fileName;
+			fileName.Format(L"D:\\picture\\img_000%d.jpg", g_count);
+			CT2A cFileName(fileName);
 			cvtColor(*frame, tempFrame, COLOR_BGR2GRAY);
 			*frame = tempFrame;
+			imwrite(cFileName.m_szBuffer, tempFrame);
+			*frame = imread(cFileName.m_szBuffer);
+			DeleteFile(fileName);
+			g_count++;
 			break;
 		}
 		case RAW:

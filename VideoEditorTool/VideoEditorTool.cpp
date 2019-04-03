@@ -34,7 +34,6 @@ CVideoEditorToolApp::CVideoEditorToolApp()
 
 CVideoEditorToolApp theApp;
 
-
 // CVideoEditorToolApp initialization
 
 BOOL CVideoEditorToolApp::InitInstance()
