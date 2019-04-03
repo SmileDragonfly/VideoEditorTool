@@ -58,6 +58,7 @@ CVideoEditorToolDlg::CVideoEditorToolDlg(CWnd* pParent /*=nullptr*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_fSpeed = 1;
 	m_iColor = RED;
+	m_processThread = NULL;
 }
 
 void CVideoEditorToolDlg::DoDataExchange(CDataExchange* pDX)
@@ -78,6 +79,8 @@ BEGIN_MESSAGE_MAP(CVideoEditorToolDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_COLOR_BLUE, &CVideoEditorToolDlg::OnBnClickedColorBlue)
 	ON_BN_CLICKED(IDC_COLOR_GRAY, &CVideoEditorToolDlg::OnBnClickedColorGray)
 	ON_BN_CLICKED(IDC_COLOR_RAW, &CVideoEditorToolDlg::OnBnClickedColorRaw)
+	ON_EN_CHANGE(IDC_INPUT_PATH, &CVideoEditorToolDlg::OnEnChangeInputPath)
+	ON_EN_CHANGE(IDC_OUTPUT_PATH, &CVideoEditorToolDlg::OnEnChangeOutputPath)
 END_MESSAGE_MAP()
 
 
@@ -248,7 +251,7 @@ UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
 	CString frameTotal;
 	frameTotal.Format(L"0/%d", totalFrame);
 	pStaticText->SetWindowText(frameTotal);
-	// Step 5: Get a frame from input, change it's color then put it to output
+	// Step 4: Get a frame from input, change it's color then put it to output
 
 	unsigned int count = 0;
 	while (1)
@@ -274,6 +277,7 @@ UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
 	}
 	inputVideo.release();
 	outputVideo.release();
+	pTarget->m_processThread = NULL;
 	return 0;
 }
 
@@ -422,11 +426,17 @@ void CVideoEditorToolDlg::OnBnClickedOk()
 	//AfxMessageBox(L"Done!");
 	//inputVideo.release();
 	//outputVideo.release();
-
-	CWinThread* processThread = AfxBeginThread(ProcessingThread, (LPVOID)this, 0, THREAD_PRIORITY_BELOW_NORMAL, CREATE_SUSPENDED);
-	if (processThread)
+	if (m_processThread != NULL)
 	{
-		processThread->ResumeThread();
+		AfxMessageBox(L"Processing!");
+	}
+	else
+	{
+		m_processThread = AfxBeginThread(ProcessingThread, (LPVOID)this, 0, THREAD_PRIORITY_BELOW_NORMAL, CREATE_SUSPENDED);
+		if (m_processThread)
+		{
+			m_processThread->ResumeThread();
+		}
 	}
 }
 
@@ -463,4 +473,30 @@ void CVideoEditorToolDlg::OnBnClickedColorRaw()
 {
 	// TODO: Add your control notification handler code here
 	m_iColor = RAW;
+}
+
+
+void CVideoEditorToolDlg::OnEnChangeInputPath()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
+	CEdit* pEditInputPath = (CEdit*) GetDlgItem(IDC_INPUT_PATH);
+	pEditInputPath->GetWindowTextW(m_strInputPath);
+}
+
+
+void CVideoEditorToolDlg::OnEnChangeOutputPath()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
+	CEdit* pEditOutputPath = (CEdit*)GetDlgItem(IDC_OUTPUT_PATH);
+	pEditOutputPath->GetWindowTextW(m_strOutputPath);
 }

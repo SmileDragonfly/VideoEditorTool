@@ -48,6 +48,7 @@ public:
 	CString m_strOutputPath;
 	ColorSelection m_iColor;
 	float m_fSpeed;
+	CWinThread* m_processThread;
 	static UINT ProcessingThread(LPVOID param);
 	afx_msg void OnBnClickedInputVideo();
 	afx_msg void OnBnClickedOutputVideo();
@@ -58,4 +59,6 @@ public:
 	afx_msg void OnBnClickedColorBlue();
 	afx_msg void OnBnClickedColorGray();
 	afx_msg void OnBnClickedColorRaw();
+	afx_msg void OnEnChangeInputPath();
+	afx_msg void OnEnChangeOutputPath();
 };
