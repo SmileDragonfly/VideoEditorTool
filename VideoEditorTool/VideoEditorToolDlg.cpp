@@ -247,9 +247,19 @@ UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
 	unsigned int totalFrame = inputVideo.get(CAP_PROP_FRAME_COUNT);
 
 	// Step 2: Get output FPS,Size (equal InputSize) and FOURCC (input) to open
-	unsigned int iOutputVideoFPS = (unsigned int)(pTarget->m_fSpeed * inputVideo.get(CAP_PROP_FPS));
+	unsigned int iOutputVideoFPS;
+	if (pTarget->m_fSpeed > 1)
+	{
+		iOutputVideoFPS = (unsigned int)(pTarget->m_fSpeed * inputVideo.get(CAP_PROP_FPS));
+	}
+	else
+	{
+		// 0.5x
+		iOutputVideoFPS = inputVideo.get(CAP_PROP_FPS);
+	}
 	Size outputSize((int)inputVideo.get(CAP_PROP_FRAME_WIDTH), (int)inputVideo.get(CAP_PROP_FRAME_HEIGHT));
-	int iFourcc = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));
+	// int iFourcc = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));
+	int iFourcc = VideoWriter::fourcc('H', '2', '6', '4');
 	VideoWriter outputVideo(cOutputPath.m_szBuffer, iFourcc, iOutputVideoFPS, outputSize);
 
 	// Step 3: Init progress bar, text
@@ -274,7 +284,15 @@ UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
 		// Change frame color
 		pTarget->ChangeFrameColor(&frame, pTarget->m_iColor);
 		// Write frame to output
-		outputVideo << frame;
+		if (pTarget->m_fSpeed > 1)
+		{
+			outputVideo << frame;
+		}
+		else
+		{
+			outputVideo << frame;
+			outputVideo << frame;
+		}
 		count++;
 		if ((count % 10) == 0)
 		{
