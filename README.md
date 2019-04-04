@@ -6,4 +6,6 @@
   - __OK:Converted file size is too big?? How to compress data?? (Resolution : Use compress tool(online, offline))
   - __OK:How to support 0.5x speed with raw FPS?? (x2 frame)
   - How to compress video?
+# 04/04/2019
+  - Update resize video
  
