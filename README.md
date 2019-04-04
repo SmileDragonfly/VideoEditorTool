@@ -4,5 +4,6 @@
   - Use 4G Ram??
   - __OK:Why function ChangeFrameColor cannot use as a method of class CVideoEditorToolDlg?? (Reason: Not use: 'using namespace cv', use cv::Mat instead)
   - __OK:Converted file size is too big?? How to compress data?? (Resolution : Use compress tool(online, offline))
-  - How to support 0.5x speed with raw FPS??
+  - __OK:How to support 0.5x speed with raw FPS?? (x2 frame)
+  - How to compress video?
  

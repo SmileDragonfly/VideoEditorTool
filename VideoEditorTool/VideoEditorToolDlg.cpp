@@ -248,7 +248,7 @@ UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
 
 	// Step 2: Get output FPS,Size (equal InputSize) and FOURCC (input) to open
 	unsigned int iOutputVideoFPS;
-	if (pTarget->m_fSpeed > 1)
+	if (pTarget->m_fSpeed >= 1)
 	{
 		iOutputVideoFPS = (unsigned int)(pTarget->m_fSpeed * inputVideo.get(CAP_PROP_FPS));
 	}
@@ -284,7 +284,7 @@ UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
 		// Change frame color
 		pTarget->ChangeFrameColor(&frame, pTarget->m_iColor);
 		// Write frame to output
-		if (pTarget->m_fSpeed > 1)
+		if (pTarget->m_fSpeed >= 1)
 		{
 			outputVideo << frame;
 		}
