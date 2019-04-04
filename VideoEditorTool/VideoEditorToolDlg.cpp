@@ -56,6 +56,7 @@ END_MESSAGE_MAP()
 
 CVideoEditorToolDlg::CVideoEditorToolDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_VIDEOEDITORTOOL_DIALOG, pParent)
+	, m_strComboBoxText(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_fSpeed = 1;
@@ -66,6 +67,8 @@ CVideoEditorToolDlg::CVideoEditorToolDlg(CWnd* pParent /*=nullptr*/)
 void CVideoEditorToolDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_COMBO_FRAMESIZE, m_comboBox);
+	DDX_CBString(pDX, IDC_COMBO_FRAMESIZE, m_strComboBoxText);
 }
 
 BEGIN_MESSAGE_MAP(CVideoEditorToolDlg, CDialogEx)
@@ -83,6 +86,7 @@ BEGIN_MESSAGE_MAP(CVideoEditorToolDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_COLOR_RAW, &CVideoEditorToolDlg::OnBnClickedColorRaw)
 	ON_EN_CHANGE(IDC_INPUT_PATH, &CVideoEditorToolDlg::OnEnChangeInputPath)
 	ON_EN_CHANGE(IDC_OUTPUT_PATH, &CVideoEditorToolDlg::OnEnChangeOutputPath)
+	ON_CBN_SELCHANGE(IDC_COMBO_FRAMESIZE, &CVideoEditorToolDlg::OnCbnSelchangeComboFramesize)
 END_MESSAGE_MAP()
 
 
@@ -134,6 +138,14 @@ BOOL CVideoEditorToolDlg::OnInitDialog()
 	// Choose default color
 	CButton* pRadioRed = (CButton*)GetDlgItem(IDC_COLOR_RED);
 	pRadioRed->SetCheck(TRUE);
+	// Set combo box
+	m_comboBox.InsertString(0, L"1920x1080");
+	m_comboBox.InsertString(1, L"1280x720");
+	m_comboBox.InsertString(2, L"720x576");
+	m_comboBox.InsertString(3, L"640x480");
+	m_comboBox.InsertString(4, L"320x240");
+	//m_comboBox.SelectString(0, L"1920x1080");
+	//m_comboBox.GetLBText(m_comboBox.GetCurSel(), m_strComboBoxText);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -257,10 +269,10 @@ UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
 		// 0.5x
 		iOutputVideoFPS = inputVideo.get(CAP_PROP_FPS);
 	}
-	Size outputSize((int)inputVideo.get(CAP_PROP_FRAME_WIDTH), (int)inputVideo.get(CAP_PROP_FRAME_HEIGHT));
+	//Size outputSize((int)inputVideo.get(CAP_PROP_FRAME_WIDTH), (int)inputVideo.get(CAP_PROP_FRAME_HEIGHT));
 	// int iFourcc = static_cast<int>(inputVideo.get(CAP_PROP_FOURCC));
 	int iFourcc = VideoWriter::fourcc('H', '2', '6', '4');
-	VideoWriter outputVideo(cOutputPath.m_szBuffer, iFourcc, iOutputVideoFPS, outputSize);
+	VideoWriter outputVideo(cOutputPath.m_szBuffer, iFourcc, iOutputVideoFPS, pTarget->m_szComboBoxSize);
 
 	// Step 3: Init progress bar, text
 	CProgressCtrl* pProgressBar = (CProgressCtrl*)pTarget->GetDlgItem(IDC_PROGRESS_BAR);
@@ -283,6 +295,11 @@ UINT CVideoEditorToolDlg::ProcessingThread(LPVOID param)
 		}
 		// Change frame color
 		pTarget->ChangeFrameColor(&frame, pTarget->m_iColor);
+		// Change frame size
+		if (pTarget->m_szRawInputSize != pTarget->m_szComboBoxSize)
+		{
+			resize(frame, frame, pTarget->m_szComboBoxSize);
+		}
 		// Write frame to output
 		if (pTarget->m_fSpeed >= 1)
 		{
@@ -322,6 +339,18 @@ void CVideoEditorToolDlg::OnBnClickedInputVideo()
 		CEdit* pEditInputPath = (CEdit*) GetDlgItem(IDC_INPUT_PATH);
 		pEditInputPath->SetWindowText(dlgInput.GetPathName());
 		m_strInputPath = dlgInput.GetPathName();
+		if (PathFileExists(m_strInputPath))
+		{
+			VideoCapture inputVideo;
+			CT2A cInputPath(m_strInputPath);
+			inputVideo.open(cInputPath.m_szBuffer);
+			m_szComboBoxSize.width = inputVideo.get(CAP_PROP_FRAME_WIDTH);
+			m_szComboBoxSize.height = inputVideo.get(CAP_PROP_FRAME_HEIGHT);
+			m_strComboBoxText.Format(L"%dx%d", m_szComboBoxSize.width, m_szComboBoxSize.height);
+			m_comboBox.SelectString(0, m_strComboBoxText);
+			inputVideo.release();
+			m_szRawInputSize = m_szComboBoxSize;
+		}
 		return;
 	}
 }
@@ -526,4 +555,40 @@ void CVideoEditorToolDlg::OnEnChangeOutputPath()
 	// TODO:  Add your control notification handler code here
 	CEdit* pEditOutputPath = (CEdit*)GetDlgItem(IDC_OUTPUT_PATH);
 	pEditOutputPath->GetWindowTextW(m_strOutputPath);
+}
+
+
+void CVideoEditorToolDlg::OnCbnSelchangeComboFramesize()
+{
+	// TODO: Add your control notification handler code here
+	m_comboBox.GetLBText(m_comboBox.GetCurSel(), m_strComboBoxText);
+	UpdateData(FALSE);
+	switch (m_comboBox.GetCurSel())
+	{
+		case 0:
+		{
+			m_szComboBoxSize.width = 1920;
+			m_szComboBoxSize.height = 1080;
+		}
+		case 1:
+		{
+			m_szComboBoxSize.width = 1280;
+			m_szComboBoxSize.height = 720;
+		}
+		case 2:
+		{
+			m_szComboBoxSize.width = 720;
+			m_szComboBoxSize.height = 576;
+		}
+		case 3:
+		{
+			m_szComboBoxSize.width = 640;
+			m_szComboBoxSize.height = 480;
+		}
+		case 4:
+		{
+			m_szComboBoxSize.width = 320;
+			m_szComboBoxSize.height = 240;
+		}
+	}
 }

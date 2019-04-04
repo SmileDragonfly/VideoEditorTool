@@ -25,6 +25,7 @@
 #define IDC_PROGRESS_BAR                1021
 #define IDC_PROCESS                     1022
 #define IDC_FRAME_TOTAL                 1023
+#define IDC_COMBO_FRAMESIZE             1027
 
 // Next default values for new objects
 // 
@@ -32,7 +33,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_CONTROL_VALUE         1028
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

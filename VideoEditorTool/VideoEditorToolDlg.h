@@ -62,4 +62,9 @@ public:
 	afx_msg void OnBnClickedColorRaw();
 	afx_msg void OnEnChangeInputPath();
 	afx_msg void OnEnChangeOutputPath();
+	CComboBox m_comboBox;
+	CString m_strComboBoxText;
+	cv::Size m_szComboBoxSize;
+	cv::Size m_szRawInputSize;
+	afx_msg void OnCbnSelchangeComboFramesize();
 };
