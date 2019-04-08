@@ -8,4 +8,10 @@
   - How to compress video?
 # 04/04/2019
   - Update resize video
- 
+# 08/04/2019
+  - Stop
+  - Need to improve:
+    + Compress video size
+    + Increase performance (using multi thread)
+    + UI (on size, focus main frame after choose input or output)
+    ...  
